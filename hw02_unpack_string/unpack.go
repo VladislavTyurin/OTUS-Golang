@@ -13,14 +13,11 @@ func isDigit(r rune) bool {
 }
 
 func checkRepeats(current, next rune) string {
-	if isDigit(next) {
-		numOfRepeat, err := strconv.Atoi(string(next))
-		if err != nil {
-			return ""
-		}
-		return strings.Repeat(string(current), numOfRepeat)
+	numOfRepeat, err := strconv.Atoi(string(next))
+	if err != nil {
+		return string(current)
 	}
-	return string(current)
+	return strings.Repeat(string(current), numOfRepeat)
 }
 
 func checkInvalidString(current, next rune, escapedCurrent bool) bool {
