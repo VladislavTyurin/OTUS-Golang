@@ -57,7 +57,7 @@ func Unpack(src string) (string, error) {
 		previousRune = currentRune
 	}
 
-	if !escapedPrevious && previousRune == '\\' {
+	if escaped(previousRune, escapedPrevious) {
 		return "", ErrInvalidString
 	}
 
