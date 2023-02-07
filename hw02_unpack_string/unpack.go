@@ -53,7 +53,7 @@ func Unpack(src string) (string, error) {
 			}
 		}
 
-		escapedPrevious = ((previousRune == '\\') && !escapedPrevious)
+		escapedPrevious = escaped(previousRune, escapedPrevious)
 		previousRune = currentRune
 	}
 
