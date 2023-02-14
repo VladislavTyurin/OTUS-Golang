@@ -14,7 +14,7 @@ const (
 
 var (
 	wordPart    = fmt.Sprintf("[^\\s%s]+", nonWordSymbols)
-	wordPattern = regexp.MustCompile(fmt.Sprintf("%s([%s]+%s)?", wordPart, nonWordSymbols, wordPart))
+	wordPattern = regexp.MustCompile(fmt.Sprintf("%s([%s]+%s)*", wordPart, nonWordSymbols, wordPart))
 )
 
 func numOfRepeats(size int) int {

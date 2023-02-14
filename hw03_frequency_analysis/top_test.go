@@ -134,6 +134,7 @@ func TestTop10(t *testing.T) {
 		{input: "{word}", expected: []string{"word"}},
 		{input: "[word]", expected: []string{"word"}},
 		{input: "\"word\"", expected: []string{"word"}},
+		{input: "word1,word2!word3", expected: []string{"word1,word2!word3"}},
 	}
 
 	for _, w := range words {
