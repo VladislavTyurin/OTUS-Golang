@@ -7,7 +7,7 @@ import (
 )
 
 // Change to true if needed.
-var taskWithAsteriskIsCompleted = false
+var taskWithAsteriskIsCompleted = true
 
 var text = `Как видите, он  спускается  по  лестнице  вслед  за  своим
 	другом   Кристофером   Робином,   головой   вниз,  пересчитывая
@@ -79,4 +79,67 @@ func TestTop10(t *testing.T) {
 			require.Equal(t, expected, Top10(text))
 		}
 	})
+
+	textASCII := "a a a a b b c c c c c d d d"
+	t.Run("aciii words1", func(t *testing.T) {
+		expected := []string{
+			"c",
+			"a",
+			"d",
+			"b",
+		}
+		require.Equal(t, expected, Top10(textASCII))
+	})
+
+	textWithDash := "собака   какая-то  нервная. Какая-то    ситуация приключилась. Какая-то собака!"
+	t.Run("with dash", func(t *testing.T) {
+		expected := []string{
+			"какая-то",
+			"собака",
+			"нервная",
+			"приключилась",
+			"ситуация",
+		}
+		require.Equal(t, expected, Top10(textWithDash))
+	})
+
+	textWithNonWordSymbols := ";собака   какая-то!  'нервная'. :Какая-то!    [ситуация] приключилась. Какая-то собака!"
+	t.Run("with dash", func(t *testing.T) {
+		expected := []string{
+			"какая-то",
+			"собака",
+			"нервная",
+			"приключилась",
+			"ситуация",
+		}
+		require.Equal(t, expected, Top10(textWithNonWordSymbols))
+	})
+
+	words := []struct {
+		input    string
+		expected []string
+	}{
+		{input: "word", expected: []string{"word"}},
+		{input: "word!", expected: []string{"word"}},
+		{input: "word,", expected: []string{"word"}},
+		{input: "!word", expected: []string{"word"}},
+		{input: ",word", expected: []string{"word"}},
+		{input: "'word'", expected: []string{"word"}},
+		{input: ",word,", expected: []string{"word"}},
+		{input: "word.word", expected: []string{"word.word"}},
+		{input: "word-word", expected: []string{"word-word"}},
+		{input: "-", expected: []string{}},
+		{input: "word.!;word", expected: []string{"word.!;word"}},
+		{input: ",;!", expected: []string{}},
+		{input: "{word}", expected: []string{"word"}},
+		{input: "[word]", expected: []string{"word"}},
+		{input: "\"word\"", expected: []string{"word"}},
+		{input: "word1,word2!word3", expected: []string{"word1,word2!word3"}},
+	}
+
+	for _, w := range words {
+		t.Run(w.input, func(t *testing.T) {
+			require.Equal(t, w.expected, Top10(w.input))
+		})
+	}
 }
