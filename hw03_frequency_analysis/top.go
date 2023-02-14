@@ -7,22 +7,12 @@ import (
 	"strings"
 )
 
-const (
-	uniqueWordsCount = 10
-	nonWordSymbols   = "\\-,.!;:\"'`\\(\\)\\{\\}\\[\\]"
-)
+const nonWordSymbols = "\\-,.!;:\"'`\\(\\)\\{\\}\\[\\]"
 
 var (
 	wordPart    = fmt.Sprintf("[^\\s%s]+", nonWordSymbols)
 	wordPattern = regexp.MustCompile(fmt.Sprintf("%s([%s]+%s)*", wordPart, nonWordSymbols, wordPart))
 )
-
-func numOfRepeats(size int) int {
-	if size < uniqueWordsCount {
-		return size
-	}
-	return uniqueWordsCount
-}
 
 func Top10(str string) []string {
 	words := wordPattern.FindAllStringSubmatch(str, -1)
@@ -40,5 +30,10 @@ func Top10(str string) []string {
 		}
 		return repeats[keys[i]] > repeats[keys[j]]
 	})
-	return keys[:numOfRepeats(len(keys))]
+
+	if len(keys) < 10 {
+		return keys
+	}
+
+	return keys[:10]
 }
