@@ -2,9 +2,9 @@ package hw04lrucache
 
 type Key string
 
-type ItemValue struct {
-	ItemKey Key
-	Value   interface{}
+type listValue struct {
+	key   Key
+	value interface{}
 }
 
 type Cache interface {
@@ -21,7 +21,7 @@ type lruCache struct {
 
 func (c *lruCache) Set(key Key, value interface{}) bool {
 	item, ok := c.items[key]
-	itemValue := ItemValue{ItemKey: key, Value: value}
+	itemValue := listValue{key: key, value: value}
 	if ok {
 		item.Value = itemValue
 		c.queue.MoveToFront(item)
@@ -30,7 +30,7 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 		c.items[key] = item
 		if c.queue.Len() > c.capacity {
 			lastElement := c.queue.Back()
-			delete(c.items, lastElement.Value.(ItemValue).ItemKey)
+			delete(c.items, lastElement.Value.(listValue).key)
 			c.queue.Remove(lastElement)
 		}
 	}
@@ -41,7 +41,7 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 func (c *lruCache) Get(key Key) (interface{}, bool) {
 	if item, ok := c.items[key]; ok {
 		c.queue.MoveToFront(item)
-		return item.Value.(ItemValue).Value, ok
+		return item.Value.(listValue).value, ok
 	}
 
 	return nil, false
