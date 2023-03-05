@@ -107,5 +107,5 @@ func (l *list) extractElement(i *ListItem) {
 }
 
 func NewList() List {
-	return &list{}
+	return new(list)
 }
