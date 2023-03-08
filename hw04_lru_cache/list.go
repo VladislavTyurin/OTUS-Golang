@@ -72,18 +72,6 @@ func (l *list) Remove(i *ListItem) {
 	if i != nil {
 		l.extractElement(i)
 		l.len--
-		switch l.len {
-		case 0:
-			l.first = nil
-			l.last = nil
-		case 1:
-			if i == l.first {
-				l.first = l.last
-			}
-			if i == l.last {
-				l.last = l.first
-			}
-		}
 	}
 }
 
@@ -98,11 +86,23 @@ func (l *list) MoveToFront(i *ListItem) {
 }
 
 func (l *list) extractElement(i *ListItem) {
-	if i.Prev != nil {
-		i.Prev.Next = i.Next
-	}
-	if i.Next != nil {
-		i.Next.Prev = i.Prev
+	switch {
+	case l.last == l.first:
+		l.last = nil
+		l.first = nil
+	case i == l.last:
+		l.last = i.Prev
+		l.last.Next = nil
+	case i == l.first:
+		l.first = i.Next
+		l.first.Prev = nil
+	default:
+		if i.Prev != nil {
+			i.Prev.Next = i.Next
+		}
+		if i.Next != nil {
+			i.Next.Prev = i.Prev
+		}
 	}
 }
 
