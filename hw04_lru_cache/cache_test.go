@@ -49,8 +49,50 @@ func TestCache(t *testing.T) {
 		require.Nil(t, val)
 	})
 
-	t.Run("purge logic", func(t *testing.T) {
-		// Write me
+	t.Run("extraction", func(t *testing.T) {
+		c := NewCache(3)
+		c.Set("1", 1)
+		c.Set("2", 2)
+		c.Set("3", 3)
+
+		for i, key := range []Key{"1", "2", "3"} {
+			item, ok := c.Get(key)
+			require.True(t, ok)
+			require.Equal(t, i+1, item)
+		}
+
+		// Вытеснение
+		c.Set("4", 4)
+		item, ok := c.Get("4")
+		require.True(t, ok)
+		require.Equal(t, 4, item)
+
+		item, ok = c.Get("1")
+		require.False(t, ok)
+		require.Nil(t, item)
+	})
+
+	t.Run("extraction_oldest", func(t *testing.T) {
+		c := NewCache(3)
+		c.Set("1", 1)
+		c.Set("2", 2)
+		c.Set("3", 3)
+
+		for i, key := range []Key{"1", "2", "3"} {
+			item, ok := c.Get(key)
+			require.True(t, ok)
+			require.Equal(t, i+1, item)
+		} // [3 2 1]
+
+		c.Get("2") // [2 3 1]
+		c.Get("3") // [3 2 1]
+
+		// Вытеснение
+		c.Set("4", 4) // [4 3 2]
+		item, ok := c.Get("1")
+		t.Log(item, ok)
+		require.False(t, ok)
+		require.Nil(t, item)
 	})
 }
 
