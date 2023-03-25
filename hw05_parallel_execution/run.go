@@ -25,6 +25,10 @@ func Run(tasks []Task, n, m int) error {
 				if currentTaskID < len(tasks) && errorsCount < m {
 					t := tasks[currentTaskID]
 					currentTaskID++
+					if t == nil {
+						mutex.Unlock()
+						continue
+					}
 					mutex.Unlock()
 
 					if t() != nil {
