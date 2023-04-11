@@ -30,6 +30,9 @@ func readInDone(in In, done In) Out {
 func runPipeline(in In, done In, stages ...Stage) Out {
 	out := in
 	for _, s := range stages {
+		if s == nil {
+			return nil
+		}
 		out = s(readInDone(out, done))
 	}
 	return out
