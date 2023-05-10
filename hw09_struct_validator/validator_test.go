@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type UserRole string
@@ -57,4 +59,11 @@ func TestValidate(t *testing.T) {
 			_ = tt
 		})
 	}
+}
+
+func TestIsStruct(t *testing.T) {
+	v := "not a struct"
+	v1 := User{}
+	require.True(t, isStruct(v1))
+	require.False(t, isStruct(v))
 }
