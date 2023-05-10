@@ -23,12 +23,12 @@ type EnvValue struct {
 // ReadDir reads a specified directory and returns map of env variables.
 // Variables represented as files where filename is name of variable, file first line is a value.
 func ReadDir(dir string) (Environment, error) {
-	result := make(Environment)
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
 
+	result := make(Environment)
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
@@ -49,9 +49,13 @@ func ReadDir(dir string) (Environment, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer f.Close()
 		scanner := bufio.NewScanner(f)
 		// Not for, because we need scan only first line
 		if scanner.Scan() {
+			if scanner.Err() != nil {
+				return nil, scanner.Err()
+			}
 			line := scanner.Bytes()
 			line = bytes.TrimRight(line, "\t ")
 			line = bytes.ReplaceAll(line, []byte{0x00}, []byte{'\n'})
