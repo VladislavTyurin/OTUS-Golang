@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	integervalidator "github.com/VladislavTyurin/OTUS-Golang/hw09_struct_validator/integer_validator"
+	"github.com/VladislavTyurin/OTUS-Golang/hw09_struct_validator/common"
 )
 
 var ErrNotStruct = errors.New("data type is not a struct")
@@ -37,24 +37,20 @@ func Validate(v interface{}) error {
 		if !ok {
 			continue
 		}
-		switch field.Type.Kind() {
-		case reflect.Int:
-			err := integervalidator.Validate(tag, field)
-			if errors.Is(err, integervalidator.ErrTagInvalid) ||
-				errors.Is(err, integervalidator.ErrValueGreaterThanMax) ||
-				errors.Is(err, integervalidator.ErrValueLessThanMin) ||
-				errors.Is(err, integervalidator.ErrValueNotFoundInSet) {
-				errs = append(errs, ValidationError{
-					Field: field.Name,
-					Err:   err,
-				})
+		v := common.GetValidator(field)
+		if v != nil {
+			err := v.Validate(tag)
+			if err != nil {
+				if v.ValidationError(err) {
+					errs = append(errs, ValidationError{
+						Field: field.Name,
+						Err:   err,
+					})
+				} else {
+					return err
+				}
 			}
-		case reflect.String:
-			fmt.Println("string", tag)
-		case reflect.Slice:
-			fmt.Println("slice", tag)
-		default:
 		}
 	}
-	return nil
+	return errs
 }
