@@ -11,9 +11,11 @@ import (
 	errs "github.com/VladislavTyurin/OTUS-Golang/hw09_struct_validator/errors"
 )
 
-var tagStringLenPattern = regexp.MustCompile(`len:(\d+)`)
-var tagStringInPattern = regexp.MustCompile(`in:(\w+(,\w+)*)`)
-var tagRegexpPattern = regexp.MustCompile(`regexp:`)
+var (
+	tagStringLenPattern = regexp.MustCompile(`len:(\d+)`)
+	tagStringInPattern  = regexp.MustCompile(`in:(\w+(,\w+)*)`)
+	tagRegexpPattern    = regexp.MustCompile(`regexp:`)
+)
 
 type stringValidator struct {
 	fieldValue reflect.Value
@@ -22,19 +24,20 @@ type stringValidator struct {
 func (sv *stringValidator) Validate(tag string) error {
 	tags := strings.Split(tag, "|")
 	for _, t := range tags {
-		if tagStringLenPattern.MatchString(t) {
+		switch {
+		case tagStringLenPattern.MatchString(t):
 			if err := sv.checkLen(t); err != nil {
 				return err
 			}
-		} else if tagStringInPattern.MatchString(t) {
+		case tagStringInPattern.MatchString(t):
 			if err := sv.checkIn(t); err != nil {
 				return err
 			}
-		} else if tagRegexpPattern.MatchString(t) {
+		case tagRegexpPattern.MatchString(t):
 			if err := sv.checkRegexp(t); err != nil {
 				return err
 			}
-		} else {
+		default:
 			return fmt.Errorf("%w for type 'string': %s", errs.ErrTagInvalid, t)
 		}
 	}
@@ -73,7 +76,7 @@ func (sv *stringValidator) checkIn(tag string) error {
 }
 
 func (sv *stringValidator) checkRegexp(tag string) error {
-	tag = strings.TrimLeft(tag, "regexp:")
+	tag = tag[len("regexp:"):]
 	r, err := regexp.Compile(tag)
 	if err != nil {
 		return err

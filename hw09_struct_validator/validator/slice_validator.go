@@ -12,18 +12,22 @@ type sliceValidator struct {
 func (sv *sliceValidator) Validate(tag string) error {
 	slice := sv.fieldValue
 	elemType := sv.fieldValue.Type().Elem().Kind()
-	switch elemType {
+	switch elemType { //nolint:exhaustive
 	case reflect.Int:
 		sv.subValidator = &intValidator
 		for i := 0; i < slice.Len(); i++ {
 			intValidator.fieldValue = sv.fieldValue.Index(i)
-			return intValidator.Validate(tag)
+			if err := intValidator.Validate(tag); err != nil {
+				return err
+			}
 		}
 	case reflect.String:
 		sv.subValidator = &strValidator
 		for i := 0; i < slice.Len(); i++ {
 			strValidator.fieldValue = sv.fieldValue.Index(i)
-			return strValidator.Validate(tag)
+			if err := strValidator.Validate(tag); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

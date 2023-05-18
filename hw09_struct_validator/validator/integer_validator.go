@@ -11,8 +11,10 @@ import (
 	errs "github.com/VladislavTyurin/OTUS-Golang/hw09_struct_validator/errors"
 )
 
-var tagIntMinMaxPattern = regexp.MustCompile(`(min|max):(\d+)`)
-var tagIntInPattern = regexp.MustCompile(`in:(\d+(,\d+)*)`)
+var (
+	tagIntMinMaxPattern = regexp.MustCompile(`(min|max):(\d+)`)
+	tagIntInPattern     = regexp.MustCompile(`in:(\d+(,\d+)*)`)
+)
 
 type integerValidator struct {
 	fieldValue reflect.Value
@@ -21,15 +23,16 @@ type integerValidator struct {
 func (iv *integerValidator) Validate(tag string) error {
 	tags := strings.Split(tag, "|")
 	for _, t := range tags {
-		if tagIntMinMaxPattern.MatchString(t) {
+		switch {
+		case tagIntMinMaxPattern.MatchString(t):
 			if err := iv.checkMinMax(t); err != nil {
 				return err
 			}
-		} else if tagIntInPattern.MatchString(t) {
+		case tagIntInPattern.MatchString(t):
 			if err := iv.checkIn(t); err != nil {
 				return err
 			}
-		} else {
+		default:
 			return fmt.Errorf("%w for type 'int': %s", errs.ErrTagInvalid, t)
 		}
 	}
@@ -90,10 +93,8 @@ func (iv *integerValidator) checkIn(tag string) error {
 	for _, v := range values {
 		if vInt, err := iv.getValueFromTag(v); err != nil {
 			return err
-		} else {
-			if fieldValue == int64(vInt) {
-				return nil
-			}
+		} else if fieldValue == int64(vInt) {
+			return nil
 		}
 	}
 	return fmt.Errorf("%w: %d not in %v", errs.ErrValueNotFoundInSet, fieldValue, values)

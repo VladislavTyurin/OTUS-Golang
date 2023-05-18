@@ -4,9 +4,11 @@ import (
 	"reflect"
 )
 
-var intValidator = integerValidator{}
-var strValidator = stringValidator{}
-var slValidator = sliceValidator{}
+var (
+	intValidator = integerValidator{}
+	strValidator = stringValidator{}
+	slValidator  = sliceValidator{}
+)
 
 type Validator interface {
 	Validate(tag string) error
@@ -14,7 +16,7 @@ type Validator interface {
 }
 
 func GetValidator(fieldValue reflect.Value, fieldType reflect.Type) Validator {
-	switch fieldType.Kind() {
+	switch fieldType.Kind() { //nolint:exhaustive
 	case reflect.Int:
 		intValidator.fieldValue = fieldValue
 		return &intValidator

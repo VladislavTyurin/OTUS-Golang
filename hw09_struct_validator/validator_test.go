@@ -167,9 +167,9 @@ func TestValidate(t *testing.T) {
 			if tt.expectedErr != nil {
 				require.Error(t, err)
 				require.ErrorAs(t, err, &ValidationErrors{})
-				require.Equal(t, len(tt.expectedErr.(errSlice)), len(err.(ValidationErrors)))
-				for _, e := range tt.expectedErr.(errSlice) {
-					require.True(t, errorIs(err.(ValidationErrors), e))
+				require.Equal(t, len(tt.expectedErr.(errSlice)), len(err.(ValidationErrors))) //nolint:errorlint
+				for _, e := range tt.expectedErr.(errSlice) {                                 //nolint:errorlint
+					require.True(t, errorIs(err.(ValidationErrors), e)) //nolint:errorlint
 				}
 			} else {
 				require.NoError(t, err)
