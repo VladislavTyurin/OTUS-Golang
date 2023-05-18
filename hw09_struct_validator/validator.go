@@ -1,16 +1,15 @@
 package hw09structvalidator
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 	"sync"
 
+	errs "github.com/VladislavTyurin/OTUS-Golang/hw09_struct_validator/errors"
 	"github.com/VladislavTyurin/OTUS-Golang/hw09_struct_validator/validator"
 )
 
-var ErrNotStruct = errors.New("data type is not a struct")
 var m = sync.Mutex{}
 
 type ValidationError struct {
@@ -39,7 +38,7 @@ func Validate(v interface{}) error {
 	m.Lock()
 	defer m.Unlock()
 	if !isStruct(v) {
-		return fmt.Errorf("%w: %v", ErrNotStruct, v)
+		return fmt.Errorf("%w: %v", errs.ErrNotStruct, v)
 	}
 
 	errs := make(ValidationErrors, 0)

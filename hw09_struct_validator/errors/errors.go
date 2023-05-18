@@ -2,6 +2,7 @@ package errors
 
 import "errors"
 
+var ErrNotStruct = errors.New("data type is not a struct")
 var ErrTagInvalid = errors.New("invalid tag")
 var ErrValueNotFoundInSet = errors.New("field value not found in set")
 var ErrValueLessThanMin = errors.New("field value is less than min")

@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	errs "github.com/VladislavTyurin/OTUS-Golang/hw09_struct_validator/errors"
-
 	"github.com/stretchr/testify/require"
 )
 
