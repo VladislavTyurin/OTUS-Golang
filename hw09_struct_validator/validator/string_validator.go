@@ -1,4 +1,4 @@
-package common
+package validator
 
 import (
 	"errors"
@@ -7,17 +7,16 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	errs "github.com/VladislavTyurin/OTUS-Golang/hw09_struct_validator/errors"
 )
 
 var tagStringLenPattern = regexp.MustCompile(`len:(\d+)`)
 var tagStringInPattern = regexp.MustCompile(`in:(\w+(,\w+)*)`)
-var tagRegexpPattern = regexp.MustCompile(`regexp:\\d\+`)
-
-var ErrStringTooLong = errors.New("field value too long")
-var ErrRegexpField = errors.New("incorrect field")
+var tagRegexpPattern = regexp.MustCompile(`regexp:`)
 
 type stringValidator struct {
-	field reflect.StructField
+	fieldValue reflect.Value
 }
 
 func (sv *stringValidator) Validate(tag string) error {
@@ -36,15 +35,15 @@ func (sv *stringValidator) Validate(tag string) error {
 				return err
 			}
 		} else {
-			return fmt.Errorf("%w for type 'int': %s", ErrTagInvalid, t)
+			return fmt.Errorf("%w for type 'string': %s", errs.ErrTagInvalid, t)
 		}
 	}
 	return nil
 }
 
 func (sv *stringValidator) ValidationError(err error) bool {
-	return errors.Is(err, ErrTagInvalid) || errors.Is(err, ErrStringTooLong) ||
-		errors.Is(err, ErrRegexpField) || errors.Is(err, ErrValueNotFoundInSet)
+	return errors.Is(err, errs.ErrTagInvalid) || errors.Is(err, errs.ErrStringTooLong) ||
+		errors.Is(err, errs.ErrRegexpField) || errors.Is(err, errs.ErrValueNotFoundInSet)
 }
 
 func (sv *stringValidator) checkLen(tag string) error {
@@ -53,10 +52,10 @@ func (sv *stringValidator) checkLen(tag string) error {
 	if err != nil {
 		return err
 	}
-	fieldValue := reflect.ValueOf(sv.field).String()
-	if len(fieldValue) > maxLen {
+
+	if len(sv.fieldValue.String()) > maxLen {
 		return fmt.Errorf("%w: %s with len %d, but max len is %d",
-			ErrStringTooLong, fieldValue, len(fieldValue), maxLen)
+			errs.ErrStringTooLong, sv.fieldValue.String(), len(sv.fieldValue.String()), maxLen)
 	}
 	return nil
 }
@@ -64,24 +63,25 @@ func (sv *stringValidator) checkLen(tag string) error {
 func (sv *stringValidator) checkIn(tag string) error {
 	groups := tagStringInPattern.FindStringSubmatch(tag)
 	values := strings.Split(groups[1], ",")
-	fieldValue := reflect.ValueOf(sv.field).String()
+	fieldValue := sv.fieldValue.String()
 	for _, v := range values {
 		if fieldValue == v {
 			return nil
 		}
 	}
-	return fmt.Errorf("%w: %s not in %v", ErrValueNotFoundInSet, fieldValue, values)
+	return fmt.Errorf("%w: %s not in %v", errs.ErrValueNotFoundInSet, fieldValue, values)
 }
 
 func (sv *stringValidator) checkRegexp(tag string) error {
+	tag = strings.TrimLeft(tag, "regexp:")
 	r, err := regexp.Compile(tag)
 	if err != nil {
 		return err
 	}
-	fieldValue := reflect.ValueOf(sv.field).String()
+	fieldValue := sv.fieldValue.String()
 
-	if r.MatchString(fieldValue) {
-		return fmt.Errorf("%w: %s", ErrRegexpField, fieldValue)
+	if !r.MatchString(fieldValue) {
+		return fmt.Errorf("%w: %s", errs.ErrRegexpField, fieldValue)
 	}
 	return nil
 }

@@ -4,11 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
+	"sync"
 
-	"github.com/VladislavTyurin/OTUS-Golang/hw09_struct_validator/common"
+	"github.com/VladislavTyurin/OTUS-Golang/hw09_struct_validator/validator"
 )
 
 var ErrNotStruct = errors.New("data type is not a struct")
+var m = sync.Mutex{}
 
 type ValidationError struct {
 	Field string
@@ -18,7 +21,14 @@ type ValidationError struct {
 type ValidationErrors []ValidationError
 
 func (v ValidationErrors) Error() string {
-	panic("implement me")
+	var builder strings.Builder
+	if len(v) != 0 {
+		builder.WriteString("Validation Error:\n")
+	}
+	for _, err := range v {
+		builder.WriteString("Field: " + err.Field + ": " + err.Err.Error() + "\n")
+	}
+	return builder.String()
 }
 
 func isStruct(v interface{}) bool {
@@ -26,24 +36,27 @@ func isStruct(v interface{}) bool {
 }
 
 func Validate(v interface{}) error {
+	m.Lock()
+	defer m.Unlock()
 	if !isStruct(v) {
 		return fmt.Errorf("%w: %v", ErrNotStruct, v)
 	}
 
 	errs := make(ValidationErrors, 0)
 	for i := 0; i < reflect.ValueOf(v).NumField(); i++ {
-		field := reflect.TypeOf(v).Field(i)
-		tag, ok := field.Tag.Lookup("validate")
+		fieldValue := reflect.ValueOf(v).Field(i)
+		fieldType := reflect.TypeOf(v).Field(i)
+		tag, ok := fieldType.Tag.Lookup("validate")
 		if !ok {
 			continue
 		}
-		v := common.GetValidator(field)
+		v := validator.GetValidator(fieldValue, fieldType.Type)
 		if v != nil {
 			err := v.Validate(tag)
 			if err != nil {
 				if v.ValidationError(err) {
 					errs = append(errs, ValidationError{
-						Field: field.Name,
+						Field: fieldType.Name,
 						Err:   err,
 					})
 				} else {
@@ -51,6 +64,9 @@ func Validate(v interface{}) error {
 				}
 			}
 		}
+	}
+	if len(errs) == 0 {
+		return nil
 	}
 	return errs
 }

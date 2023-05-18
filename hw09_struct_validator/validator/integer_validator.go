@@ -1,4 +1,4 @@
-package common
+package validator
 
 import (
 	"errors"
@@ -7,16 +7,15 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	errs "github.com/VladislavTyurin/OTUS-Golang/hw09_struct_validator/errors"
 )
 
 var tagIntMinMaxPattern = regexp.MustCompile(`(min|max):(\d+)`)
 var tagIntInPattern = regexp.MustCompile(`in:(\d+(,\d+)*)`)
 
-var ErrValueLessThanMin = errors.New("field value is less than min")
-var ErrValueGreaterThanMax = errors.New("field value is greater than max")
-
 type integerValidator struct {
-	field reflect.StructField
+	fieldValue reflect.Value
 }
 
 func (iv *integerValidator) Validate(tag string) error {
@@ -31,17 +30,17 @@ func (iv *integerValidator) Validate(tag string) error {
 				return err
 			}
 		} else {
-			return fmt.Errorf("%w for type 'int': %s", ErrTagInvalid, t)
+			return fmt.Errorf("%w for type 'int': %s", errs.ErrTagInvalid, t)
 		}
 	}
 	return nil
 }
 
 func (iv *integerValidator) ValidationError(err error) bool {
-	return errors.Is(err, ErrTagInvalid) ||
-		errors.Is(err, ErrValueGreaterThanMax) ||
-		errors.Is(err, ErrValueLessThanMin) ||
-		errors.Is(err, ErrValueNotFoundInSet)
+	return errors.Is(err, errs.ErrTagInvalid) ||
+		errors.Is(err, errs.ErrValueGreaterThanMax) ||
+		errors.Is(err, errs.ErrValueLessThanMin) ||
+		errors.Is(err, errs.ErrValueNotFoundInSet)
 }
 
 func (iv *integerValidator) checkMinMax(tag string) error {
@@ -65,9 +64,9 @@ func (iv *integerValidator) checkMin(tag string) error {
 	if err != nil {
 		return err
 	}
-	fieldValue := reflect.ValueOf(iv.field).Int()
+	fieldValue := iv.fieldValue.Int()
 	if fieldValue < int64(minValue) {
-		return fmt.Errorf("%w: %d < %d", ErrValueLessThanMin, fieldValue, minValue)
+		return fmt.Errorf("%w: %d < %d", errs.ErrValueLessThanMin, fieldValue, minValue)
 	}
 	return nil
 }
@@ -77,9 +76,9 @@ func (iv *integerValidator) checkMax(tag string) error {
 	if err != nil {
 		return err
 	}
-	fieldValue := reflect.ValueOf(iv.field).Int()
-	if fieldValue > int64(maxValue) {
-		return fmt.Errorf("%w: %d > %d", ErrValueGreaterThanMax, fieldValue, maxValue)
+
+	if iv.fieldValue.Int() > int64(maxValue) {
+		return fmt.Errorf("%w: %d > %d", errs.ErrValueGreaterThanMax, iv.fieldValue.Int(), maxValue)
 	}
 	return nil
 }
@@ -87,7 +86,7 @@ func (iv *integerValidator) checkMax(tag string) error {
 func (iv *integerValidator) checkIn(tag string) error {
 	groups := tagIntInPattern.FindStringSubmatch(tag)
 	values := strings.Split(groups[1], ",")
-	fieldValue := reflect.ValueOf(iv.field).Int()
+	fieldValue := iv.fieldValue.Int()
 	for _, v := range values {
 		if vInt, err := iv.getValueFromTag(v); err != nil {
 			return err
@@ -97,7 +96,7 @@ func (iv *integerValidator) checkIn(tag string) error {
 			}
 		}
 	}
-	return fmt.Errorf("%w: %d not in %v", ErrValueNotFoundInSet, fieldValue, values)
+	return fmt.Errorf("%w: %d not in %v", errs.ErrValueNotFoundInSet, fieldValue, values)
 }
 
 func (iv *integerValidator) getValueFromTag(tag string) (int, error) {
